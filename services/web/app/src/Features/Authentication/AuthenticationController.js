@@ -20,6 +20,8 @@ const AsyncFormHelper = require('../Helpers/AsyncFormHelper')
 const _ = require('lodash')
 const UserAuditLogHandler = require('../User/UserAuditLogHandler')
 const AnalyticsRegistrationSourceHelper = require('../Analytics/AnalyticsRegistrationSourceHelper')
+const axios = require('axios')
+const Path = require('path')
 const {
   acceptsJson,
 } = require('../../infrastructure/RequestContentTypeDetection')
@@ -296,6 +298,77 @@ const AuthenticationController = {
 
     return doRequest
   },
+
+    oauth2Redirect(req, res, next) {
+        res.redirect(`${process.env.OAUTH_AUTH_URL}?` +
+            querystring.stringify({
+                client_id: process.env.OAUTH_CLIENT_ID,
+                response_type: "code",
+                redirect_uri: (process.env.SHARELATEX_SITE_URL + "/oauth/callback"),
+                scope: "openid email profile",
+                state: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+            }));
+    },
+
+    oauth2Callback(req, res, next) {
+        const code = req.query.code;
+
+//construct axios body
+        const params = new URLSearchParams()
+        params.append('grant_type', "authorization_code")
+        params.append('client_id', process.env.OAUTH_CLIENT_ID)
+        params.append('client_secret', process.env.OAUTH_CLIENT_SECRET)
+        params.append("code", code)
+        params.append('redirect_uri', (process.env.SHARELATEX_SITE_URL + "/oauth/callback"))
+
+
+        // json_body = {
+        //     "grant_type": "authorization_code",
+        //     client_id: process.env.OAUTH_CLIENT_ID,
+        //     client_secret: process.env.OAUTH_CLIENT_SECRET,
+        //     "code": code,
+        //     redirect_uri: (process.env.SHARELATEX_SITE_URL + "/oauth/callback"),
+        // }
+        // console.log(axios);
+        axios.post(process.env.OAUTH_ACCESS_URL, params, {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+
+            }
+        }).then(access_res => {
+
+            // console.log("respond is  " + JSON.stringify(access_res.data))
+            // console.log("authorization_bearer_is " + authorization_bearer)
+            authorization_bearer = "Bearer " + access_res.data.access_token
+
+            let axios_get_config = {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": authorization_bearer,
+                },
+                params: access_res.data
+            }
+            // console.log(access_res.data);
+            axios.get(process.env.OAUTH_USER_URL, axios_get_config).then(info_res => {
+                // console.log("oauth_user: ", JSON.stringify(info_res.data));
+                if (info_res.data.err) {
+                    res.json({message: info_res.data.err});
+                } else {
+                  // console.log(info_res.data);
+                    AuthenticationManager.createUserIfNotExist(info_res.data, (error, user) => {
+                        if (error) {
+                          // console.log("ERROR:", error);
+                          res.json({message: error});
+                        } else {
+                            // console.log("real_user: ", user);
+                            AuthenticationController.finishLogin(user, req, res, next);
+                        }
+                    });
+                }
+            });
+        });
+    },
+
 
   requireOauth() {
     // require this here because module may not be included in some versions

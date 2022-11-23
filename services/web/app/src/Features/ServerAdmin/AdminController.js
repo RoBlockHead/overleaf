@@ -27,6 +27,7 @@ const SystemMessageManager = require('../SystemMessages/SystemMessageManager')
 const {
   addOptionalCleanupHandlerAfterDrainingConnections,
 } = require('../../infrastructure/GracefulShutdown')
+const { User } = require('../../models/User')
 
 const oneMinInMs = 60 * 1000
 
@@ -170,6 +171,20 @@ const AdminController = {
       return res.sendStatus(200)
     })
   },
+
+  makeUserAdmin(req, res, next) {
+    if(!req.body.user_email) return res.sendStatus(400);
+    User.updateOne({
+      email: req.body.user_email
+    }, {
+      $set: {
+        isAdmin: true
+      }
+    }).catch((err) => {
+      return next(err);
+    })
+    return res.sendStatus(200);
+  }
 }
 
 function __guard__(value, transform) {

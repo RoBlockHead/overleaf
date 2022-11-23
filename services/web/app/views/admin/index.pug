@@ -16,7 +16,7 @@ block content
 								+bookmarkable-tabset-header('open-close-editor', 'Open/Close Editor')
 								if hasFeature('saas')
 									+bookmarkable-tabset-header('tpds', 'TPDS/Dropbox Management')
-								+bookmarkable-tabset-header('advanced', 'Advanced')
+								//- +bookmarkable-tabset-header('advanced', 'Advanced')
 
 							.tab-content
 								.tab-pane.active(
@@ -48,7 +48,19 @@ block content
 													ul
 														each agent in agents
 															li(ng-non-bindable) #{agent}
-
+								
+								.tab-pane(
+									role="tabpanel"
+									id="add-admin"
+								)
+									.row-spaced 
+										form(method='post',action='/admin/makeUserAdmin')
+											input(name="_csrf", type="hidden", value=csrfToken)
+											.form-group 
+												label(for='user_email') User Email
+												input.form-control(type='email', name='user_email', placeholder='User Email', required)
+											.form-group 
+												button.btn-primary.btn(type='submit') Make User Admin
 								.tab-pane(
 									role="tabpanel"
 									id='open-close-editor'

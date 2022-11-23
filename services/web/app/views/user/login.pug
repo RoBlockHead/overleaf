@@ -32,5 +32,9 @@ block content
 									data-ol-disabled-inflight
 								)
 									span(data-ol-inflight="idle") #{translate("login")}
-									span(hidden data-ol-inflight="pending") #{translate("logging_in")}…
+									span(hidden data-ol-inflight="pending") #{translate("logging_in")}…						
 								a.pull-right(href='/user/password/reset') #{translate("forgot_your_password")}?
+
+							.form-group.text-center(style="padding-top: 10px")
+								a.btn-block.login-btn(href="/oauth/redirect" style='padding-left: 0px')
+									| Login via SSO

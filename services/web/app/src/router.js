@@ -1158,7 +1158,11 @@ function initialize(webRouter, privateApiRouter, publicApiRouter) {
     AuthorizationMiddleware.ensureUserIsSiteAdmin,
     AdminController.clearMessages
   )
-
+  webRouter.post(
+    '/admin/makeUserAdmin',
+    AuthorizationMiddleware.ensureUserIsSiteAdmin,
+    AdminController.makeUserAdmin
+  )
   privateApiRouter.get('/perfTest', (req, res) => {
     plainTextResponse(res, 'hello')
   })
@@ -1343,6 +1347,10 @@ function initialize(webRouter, privateApiRouter, publicApiRouter) {
   )
 
   webRouter.get('/unsupported-browser', renderUnsupportedBrowserPage)
+  webRouter.get('/oauth/redirect', AuthenticationController.oauth2Redirect)
+  webRouter.get('/oauth/callback', AuthenticationController.oauth2Callback)
 
+  AuthenticationController.addEndpointToLoginWhitelist('/oauth/redirect')
+  AuthenticationController.addEndpointToLoginWhitelist('/oauth/callback')
   webRouter.get('*', ErrorController.notFound)
 }

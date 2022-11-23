@@ -1,6 +1,6 @@
 # docker image build
 .dockerignore
-
+/node_modules/*
 # user defined files
 .env
 docker-compose.override.yml

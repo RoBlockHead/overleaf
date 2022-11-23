@@ -140,6 +140,10 @@ nav.navbar.navbar-default.navbar-main
 								event-tracking-mb="true"
 								event-segmentation={ page: currentUrl }
 							) #{translate('log_in')}
+						li
+							a(
+								href="/oauth/redirect"
+							) Login with SSO
 
 					// projects link and account menu
 					if getSessionUser()
